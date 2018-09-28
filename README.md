@@ -25,6 +25,10 @@ isPresnt := f.Lookup(n1)
 ```
 
 
+## Inspired
+- https://www.cs.cmu.edu/~dga/papers/cuckoo-conext2014.pdf
+- https://github.com/tylertreat/BoomFilters
+
 ## TODO
 
 - Make it thread safe
