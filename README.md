@@ -7,10 +7,24 @@ Implementing a Cuckoo filter, based on the paper Cuckoo Filter: Practically Bett
 ## Example Usage
 
 ```go
-n1 := []byte("Bess")
-f := NewCuckooFilter(uint(b.N))
-err := f.Insert(n1)
-isPresnt := f.Lookup(n1)
+package main
+
+import(
+	"log"
+	"github.com/arriqaaq/cuckoo"
+)
+
+func main(){
+	f := cuckoo.NewCuckooFilter(uint(5000000), 0.001)
+	n1 := []byte("Bess")
+	err := f.Insert(n1)
+	if err!=nil{
+		log.Println("bucket full: ",err)
+	}
+	isPresent := f.Lookup(n1)
+	log.Println("key present? ",isPresent)
+
+}
 ```
 
 
