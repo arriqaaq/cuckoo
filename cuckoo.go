@@ -105,7 +105,7 @@ func (b bucket) getEmptyEntry() (int, error) {
 	functions and four entries per bucket
 */
 
-func NewCuckooFilter(capacity uint) *CuckooFilter {
+func NewCuckooFilter(capacity uint, fpRate float64) *CuckooFilter {
 	capacity = power2(capacity) / bucketSize
 	if capacity == 0 {
 		capacity = 1
@@ -116,7 +116,7 @@ func NewCuckooFilter(capacity uint) *CuckooFilter {
 	}
 
 	return &CuckooFilter{
-		fpSize:         calculateFingerprintSize(bucketSize, 0.1),
+		fpSize:         calculateFingerprintSize(bucketSize, fpRate),
 		numbuckets:     capacity,
 		buckets:        buckets,
 		entryPerBucket: uint(4),

@@ -31,7 +31,7 @@ func bToMb(b uint64) uint64 {
 }
 
 func TestBasic(t *testing.T) {
-	f := NewCuckooFilter(20)
+	f := NewCuckooFilter(20, 0.001)
 	n1 := []byte("Bess")
 	n2 := []byte("Jane")
 	f.Insert(n1)
@@ -46,7 +46,7 @@ func TestBasic(t *testing.T) {
 }
 
 func TestBasicUint32(t *testing.T) {
-	f := NewCuckooFilter(20)
+	f := NewCuckooFilter(20, 0.001)
 	n1 := make([]byte, 4)
 	n2 := make([]byte, 4)
 	n3 := make([]byte, 4)
@@ -73,7 +73,7 @@ func TestBasicUint32(t *testing.T) {
 
 func BenchmarkCuckooInsert(b *testing.B) {
 	b.StopTimer()
-	f := NewCuckooFilter(uint(b.N))
+	f := NewCuckooFilter(uint(b.N), 0.001)
 
 	data := make([][]byte, b.N)
 	for i := 0; i < b.N; i++ {
@@ -91,7 +91,7 @@ func BenchmarkCuckooInsert(b *testing.B) {
 
 func BenchmarkCuckooLookup(b *testing.B) {
 	b.StopTimer()
-	f := NewCuckooFilter(uint(b.N))
+	f := NewCuckooFilter(uint(b.N), 0.001)
 	data := make([][]byte, b.N)
 	for i := 0; i < b.N; i++ {
 		data[i] = []byte(strconv.Itoa(i))
@@ -107,7 +107,7 @@ func BenchmarkCuckooLookup(b *testing.B) {
 }
 
 func BenchmarkCuckooLookupAndInsert(b *testing.B) {
-	f := NewCuckooFilter(uint(b.N))
+	f := NewCuckooFilter(uint(b.N), 0.001)
 	key := make([]byte, 100)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -122,7 +122,7 @@ func BenchmarkCuckooLookupAndInsert(b *testing.B) {
 
 func BenchmarkCuckooLookupAndDelete(b *testing.B) {
 	b.StopTimer()
-	f := NewCuckooFilter(uint(b.N))
+	f := NewCuckooFilter(uint(b.N), 0.001)
 	data := make([][]byte, b.N)
 	for i := 0; i < b.N; i++ {
 		data[i] = []byte(strconv.Itoa(i))
