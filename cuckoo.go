@@ -2,10 +2,11 @@ package cuckoo
 
 import (
 	"bytes"
-	"crypto/sha1"
 	"encoding/binary"
 	"errors"
+	// "fmt"
 	"github.com/cespare/xxhash"
+	"hash/fnv"
 	"math/rand"
 )
 
@@ -21,7 +22,7 @@ func max(x, y uint) uint {
 }
 
 func hash1(data []byte) []byte {
-	h := sha1.New()
+	h := fnv.New64a()
 	h.Write(data)
 	return h.Sum(nil)
 }
@@ -103,10 +104,12 @@ func NewCuckooFilter(capacity uint) *CuckooFilter {
 	for i := range buckets {
 		buckets[i] = newBucket(bucketSize)
 	}
+
 	return &CuckooFilter{
+		fpSize:         4,
+		numbuckets:     capacity,
+		buckets:        buckets,
 		entryPerBucket: uint(4),
-		capacity:       capacity,
-		fpSize:         10,
 	}
 }
 
@@ -116,8 +119,6 @@ type CuckooFilter struct {
 	fpSize         uint
 	size           uint // number of items in filter
 	buckets        []bucket
-	capacity       uint // total items that can be in the filter
-
 }
 
 func (c *CuckooFilter) getCuckooParams(data []byte) (uint, uint, []byte) {
@@ -135,6 +136,7 @@ func (c *CuckooFilter) fingerprint(data []byte, size uint) []byte {
 func (c *CuckooFilter) Insert(data []byte) error {
 	i1, i2, f := c.getCuckooParams(data)
 
+	// fmt.Println("vals: ", i1, i2, f, len(c.buckets))
 	// insert into bucket1
 	b1 := c.buckets[i1]
 	if idx, err := b1.getEmptyEntry(); err == nil {
@@ -162,7 +164,7 @@ func (c *CuckooFilter) Insert(data []byte) error {
 	i := i1
 	for n := 0; n < maxCuckooKicks; n++ {
 		// randomly select an entry e from bucket[i];
-		rIdx := rand.Intn(len(c.buckets) - 1)
+		rIdx := rand.Intn(len(c.buckets[i]) - 1)
 		f, c.buckets[i][rIdx] = c.buckets[i][rIdx], f
 		i = (i ^ uint(binary.BigEndian.Uint32(hash2(data)))) % c.numbuckets
 		b := c.buckets[i]
