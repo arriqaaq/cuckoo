@@ -7,12 +7,22 @@ import (
 	// "fmt"
 	"github.com/cespare/xxhash"
 	"hash/fnv"
+	"math"
 	"math/rand"
 )
 
 var (
 	ERR_FILTER_FULL = errors.New("full")
 )
+
+func calculateFingerprintSize(b uint, epsilon float64) uint {
+	f := uint(math.Ceil(math.Log(2 * float64(b) / epsilon)))
+	f = f / 8
+	if f <= 0 {
+		f = 1
+	}
+	return f
+}
 
 func max(x, y uint) uint {
 	if x > y {
@@ -22,7 +32,7 @@ func max(x, y uint) uint {
 }
 
 func hash1(data []byte) []byte {
-	h := fnv.New64a()
+	h := fnv.New32()
 	h.Write(data)
 	return h.Sum(nil)
 }
@@ -106,7 +116,7 @@ func NewCuckooFilter(capacity uint) *CuckooFilter {
 	}
 
 	return &CuckooFilter{
-		fpSize:         4,
+		fpSize:         calculateFingerprintSize(bucketSize, 0.1),
 		numbuckets:     capacity,
 		buckets:        buckets,
 		entryPerBucket: uint(4),
@@ -122,20 +132,19 @@ type CuckooFilter struct {
 }
 
 func (c *CuckooFilter) getCuckooParams(data []byte) (uint, uint, []byte) {
-	f := c.fingerprint(data, c.fpSize)
-	i1 := uint(binary.BigEndian.Uint32(f)) % c.numbuckets
+	hash := c.computeHash(data)
+	f := hash[0:c.fpSize]
+	i1 := uint(binary.BigEndian.Uint32(hash2(hash))) % c.numbuckets
 	i2 := (i1 ^ uint(binary.BigEndian.Uint32(hash1(f)))) % c.numbuckets
 
 	return i1, i2, f
 }
 
-func (c *CuckooFilter) fingerprint(data []byte, size uint) []byte {
-	return hash1(data)[0:size]
+func (c *CuckooFilter) computeHash(data []byte) []byte {
+	return hash1(data)
 }
 
-func (c *CuckooFilter) Insert(data []byte) error {
-	i1, i2, f := c.getCuckooParams(data)
-
+func (c *CuckooFilter) insert(i1 uint, i2 uint, f []byte) error {
 	// fmt.Println("vals: ", i1, i2, f, len(c.buckets))
 	// insert into bucket1
 	b1 := c.buckets[i1]
@@ -166,7 +175,7 @@ func (c *CuckooFilter) Insert(data []byte) error {
 		// randomly select an entry e from bucket[i];
 		rIdx := rand.Intn(len(c.buckets[i]) - 1)
 		f, c.buckets[i][rIdx] = c.buckets[i][rIdx], f
-		i = (i ^ uint(binary.BigEndian.Uint32(hash2(data)))) % c.numbuckets
+		i = (i ^ uint(binary.BigEndian.Uint32(hash2(f)))) % c.numbuckets
 		b := c.buckets[i]
 		if idx, err := b.getEmptyEntry(); err == nil {
 			b[idx] = f
@@ -175,6 +184,12 @@ func (c *CuckooFilter) Insert(data []byte) error {
 	}
 
 	return ERR_FILTER_FULL
+
+}
+
+func (c *CuckooFilter) Insert(data []byte) error {
+	i1, i2, f := c.getCuckooParams(data)
+	return c.insert(i1, i2, f)
 }
 
 func (c *CuckooFilter) Lookup(data []byte) bool {

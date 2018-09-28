@@ -2,8 +2,33 @@ package cuckoo
 
 import (
 	"encoding/binary"
+	"fmt"
+	"runtime"
+	"strconv"
 	"testing"
+	"time"
 )
+
+func timeGC() time.Duration {
+	start := time.Now()
+	runtime.GC()
+	return time.Since(start)
+}
+
+func PrintMemUsage() {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	// For info on each, see: https://golang.org/pkg/runtime/#MemStats
+	fmt.Printf("Alloc = %v MiB", bToMb(m.Alloc))
+	fmt.Printf("\tTotalAlloc = %v MiB", bToMb(m.TotalAlloc))
+	fmt.Printf("\tSys = %v MiB", bToMb(m.Sys))
+	fmt.Printf("\tNumGC = %v\n", m.NumGC)
+	fmt.Println()
+}
+
+func bToMb(b uint64) uint64 {
+	return b / 1024 / 1024
+}
 
 func TestBasic(t *testing.T) {
 	f := NewCuckooFilter(20)
@@ -46,29 +71,42 @@ func TestBasicUint32(t *testing.T) {
 	}
 }
 
-func BenchmarkSeparateLookup(b *testing.B) {
+func BenchmarkCuckooAdd(b *testing.B) {
+	b.StopTimer()
 	f := NewCuckooFilter(uint(b.N))
-	b.ResetTimer()
-	n1 := []byte("Bess")
-	f.Insert(n1)
+
+	data := make([][]byte, b.N)
+	for i := 0; i < b.N; i++ {
+		data[i] = []byte(strconv.Itoa(i))
+	}
+	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		f.Lookup(n1)
+		f.Insert(data[i])
 	}
+	PrintMemUsage()
+	runtime.GC()
+	fmt.Println("GC took: ", b.N, timeGC())
 }
 
-func BenchmarkSeparateInsert(b *testing.B) {
+func BenchmarkCuckooTest(b *testing.B) {
+	b.StopTimer()
 	f := NewCuckooFilter(uint(b.N))
-	b.ResetTimer()
-
-	n1 := []byte("Bess")
-
+	data := make([][]byte, b.N)
 	for i := 0; i < b.N; i++ {
-		f.Insert(n1)
+		data[i] = []byte(strconv.Itoa(i))
 	}
+	b.StartTimer()
+
+	for n := 0; n < b.N; n++ {
+		f.Lookup(data[n])
+	}
+	PrintMemUsage()
+	runtime.GC()
+	fmt.Println("GC took: ", b.N, timeGC())
 }
 
-func BenchmarkSeparateLookupAndInsert(b *testing.B) {
+func BenchmarkCuckooTestAndAdd(b *testing.B) {
 	f := NewCuckooFilter(uint(b.N))
 	key := make([]byte, 100)
 	b.ResetTimer()
@@ -77,4 +115,7 @@ func BenchmarkSeparateLookupAndInsert(b *testing.B) {
 		f.Lookup(key)
 		f.Insert(key)
 	}
+	PrintMemUsage()
+	runtime.GC()
+	fmt.Println("GC took: ", b.N, timeGC())
 }
