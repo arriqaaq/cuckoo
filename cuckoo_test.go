@@ -71,7 +71,7 @@ func TestBasicUint32(t *testing.T) {
 	}
 }
 
-func BenchmarkCuckooAdd(b *testing.B) {
+func BenchmarkCuckooInsert(b *testing.B) {
 	b.StopTimer()
 	f := NewCuckooFilter(uint(b.N))
 
@@ -84,12 +84,12 @@ func BenchmarkCuckooAdd(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		f.Insert(data[i])
 	}
-	// PrintMemUsage()
-	// runtime.GC()
-	// fmt.Println("GC took: ", b.N, timeGC())
+	PrintMemUsage()
+	runtime.GC()
+	fmt.Println("GC took: ", b.N, timeGC())
 }
 
-func BenchmarkCuckooTest(b *testing.B) {
+func BenchmarkCuckooLookup(b *testing.B) {
 	b.StopTimer()
 	f := NewCuckooFilter(uint(b.N))
 	data := make([][]byte, b.N)
@@ -101,12 +101,12 @@ func BenchmarkCuckooTest(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		f.Lookup(data[n])
 	}
-	// PrintMemUsage()
-	// runtime.GC()
-	// fmt.Println("GC took: ", b.N, timeGC())
+	PrintMemUsage()
+	runtime.GC()
+	fmt.Println("GC took: ", b.N, timeGC())
 }
 
-func BenchmarkCuckooTestAndAdd(b *testing.B) {
+func BenchmarkCuckooLookupAndInsert(b *testing.B) {
 	f := NewCuckooFilter(uint(b.N))
 	key := make([]byte, 100)
 	b.ResetTimer()
@@ -115,7 +115,22 @@ func BenchmarkCuckooTestAndAdd(b *testing.B) {
 		f.Lookup(key)
 		f.Insert(key)
 	}
-	// PrintMemUsage()
-	// runtime.GC()
-	// fmt.Println("GC took: ", b.N, timeGC())
+	PrintMemUsage()
+	runtime.GC()
+	fmt.Println("GC took: ", b.N, timeGC())
+}
+
+func BenchmarkCuckooLookupAndDelete(b *testing.B) {
+	b.StopTimer()
+	f := NewCuckooFilter(uint(b.N))
+	data := make([][]byte, b.N)
+	for i := 0; i < b.N; i++ {
+		data[i] = []byte(strconv.Itoa(i))
+	}
+	b.StartTimer()
+
+	for n := 0; n < b.N; n++ {
+		f.Insert(data[n])
+		f.Delete(data[n])
+	}
 }
