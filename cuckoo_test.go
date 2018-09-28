@@ -84,9 +84,9 @@ func BenchmarkCuckooAdd(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		f.Insert(data[i])
 	}
-	PrintMemUsage()
-	runtime.GC()
-	fmt.Println("GC took: ", b.N, timeGC())
+	// PrintMemUsage()
+	// runtime.GC()
+	// fmt.Println("GC took: ", b.N, timeGC())
 }
 
 func BenchmarkCuckooTest(b *testing.B) {
@@ -101,9 +101,9 @@ func BenchmarkCuckooTest(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		f.Lookup(data[n])
 	}
-	PrintMemUsage()
-	runtime.GC()
-	fmt.Println("GC took: ", b.N, timeGC())
+	// PrintMemUsage()
+	// runtime.GC()
+	// fmt.Println("GC took: ", b.N, timeGC())
 }
 
 func BenchmarkCuckooTestAndAdd(b *testing.B) {
@@ -115,7 +115,7 @@ func BenchmarkCuckooTestAndAdd(b *testing.B) {
 		f.Lookup(key)
 		f.Insert(key)
 	}
-	PrintMemUsage()
-	runtime.GC()
-	fmt.Println("GC took: ", b.N, timeGC())
+	// PrintMemUsage()
+	// runtime.GC()
+	// fmt.Println("GC took: ", b.N, timeGC())
 }
