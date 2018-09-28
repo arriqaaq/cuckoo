@@ -27,6 +27,7 @@ isPresnt := f.Lookup(n1)
 
 ## Inspired
 - https://www.cs.cmu.edu/~dga/papers/cuckoo-conext2014.pdf
+- https://brilliant.org/wiki/cuckoo-filter/
 - https://github.com/tylertreat/BoomFilters
 
 ## TODO
