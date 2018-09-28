@@ -123,7 +123,7 @@ type CuckooFilter struct {
 
 func (c *CuckooFilter) getCuckooParams(data []byte) (uint, uint, []byte) {
 	f := c.fingerprint(data, c.fpSize)
-	i1 := uint(binary.BigEndian.Uint32(hash2(data))) % c.numbuckets
+	i1 := uint(binary.BigEndian.Uint32(f)) % c.numbuckets
 	i2 := (i1 ^ uint(binary.BigEndian.Uint32(hash1(f)))) % c.numbuckets
 
 	return i1, i2, f
