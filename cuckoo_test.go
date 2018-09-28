@@ -71,6 +71,65 @@ func TestBasicUint32(t *testing.T) {
 	}
 }
 
+func TestCuckooInsertTime(t *testing.T) {
+	f := NewCuckooFilter(uint(5000000), 0.001)
+
+	data := make([][]byte, 5000000)
+	for i := 0; i < 5000000; i++ {
+		data[i] = []byte(strconv.Itoa(i))
+	}
+
+	now := time.Now()
+
+	for i := 0; i < 5000000; i++ {
+		f.Insert(data[i])
+	}
+	PrintMemUsage()
+	fmt.Println("GC took: ", 5000000, time.Since(now))
+}
+
+func TestCuckooDeleteTime(t *testing.T) {
+	f := NewCuckooFilter(uint(5000000), 0.001)
+
+	data := make([][]byte, 5000000)
+	for i := 0; i < 5000000; i++ {
+		data[i] = []byte(strconv.Itoa(i))
+	}
+
+	for i := 0; i < 5000000; i++ {
+		f.Insert(data[i])
+	}
+
+	now := time.Now()
+
+	for i := 0; i < 5000000; i++ {
+		f.Delete(data[i])
+	}
+	PrintMemUsage()
+	fmt.Println("GC took: ", 5000000, time.Since(now))
+}
+
+func TestCuckooLookupTime(t *testing.T) {
+	f := NewCuckooFilter(uint(5000000), 0.001)
+
+	data := make([][]byte, 5000000)
+	for i := 0; i < 5000000; i++ {
+		data[i] = []byte(strconv.Itoa(i))
+	}
+
+	for i := 0; i < 5000000; i++ {
+		f.Insert(data[i])
+	}
+
+	now := time.Now()
+
+	for i := 0; i < 5000000; i++ {
+		f.Lookup(data[i])
+	}
+	PrintMemUsage()
+	fmt.Println("GC took: ", 5000000, time.Since(now))
+}
+
 func BenchmarkCuckooInsert(b *testing.B) {
 	b.StopTimer()
 	f := NewCuckooFilter(uint(b.N), 0.001)
@@ -133,4 +192,7 @@ func BenchmarkCuckooLookupAndDelete(b *testing.B) {
 		f.Insert(data[n])
 		f.Delete(data[n])
 	}
+	PrintMemUsage()
+	runtime.GC()
+	fmt.Println("GC took: ", b.N, timeGC())
 }
