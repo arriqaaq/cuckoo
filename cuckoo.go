@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	// "fmt"
 	"github.com/cespare/xxhash"
 	"hash/fnv"
 	"math"
@@ -145,7 +144,6 @@ func (c *CuckooFilter) computeHash(data []byte) []byte {
 }
 
 func (c *CuckooFilter) insert(i1 uint, i2 uint, f []byte) error {
-	// fmt.Println("vals: ", i1, i2, f, len(c.buckets))
 	// insert into bucket1
 	b1 := c.buckets[i1]
 	if idx, err := b1.getEmptyEntry(); err == nil {
