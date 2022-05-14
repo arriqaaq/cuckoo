@@ -51,15 +51,17 @@ func TestBasicUint32(t *testing.T) {
 	n2 := make([]byte, 4)
 	n3 := make([]byte, 4)
 	n4 := make([]byte, 4)
-	binary.BigEndian.PutUint32(n1, 100)
-	binary.BigEndian.PutUint32(n2, 101)
-	binary.BigEndian.PutUint32(n3, 102)
-	binary.BigEndian.PutUint32(n4, 103)
+
+	binary.BigEndian.PutUint32(n1, 1000)
+	binary.BigEndian.PutUint32(n2, 1010)
+	binary.BigEndian.PutUint32(n3, 1020)
+	binary.BigEndian.PutUint32(n4, 1030)
 	f.Insert(n1)
+
 	n1b := f.Lookup(n1)
 	n2b := f.Lookup(n2)
 	n3b := f.Lookup(n3)
-	f.Lookup(n4)
+	n4b := f.Lookup(n4)
 	if !n1b {
 		t.Errorf("%v should be in.", n1)
 	}
@@ -68,6 +70,9 @@ func TestBasicUint32(t *testing.T) {
 	}
 	if n3b {
 		t.Errorf("%v should not be in.", n3)
+	}
+	if n4b {
+		t.Errorf("%v should not be in.", n4)
 	}
 }
 
@@ -195,4 +200,43 @@ func BenchmarkCuckooLookupAndDelete(b *testing.B) {
 	PrintMemUsage()
 	runtime.GC()
 	fmt.Println("GC took: ", b.N, timeGC())
+}
+
+func TestParallelInsert(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		insertArg uint32
+		expectArg uint32
+		expected  bool
+	}{
+		{
+			name:      "successful lookup",
+			insertArg: 1000,
+			expectArg: 1000,
+			expected:  true,
+		},
+		{
+			name:      "unsuccessful lookup",
+			insertArg: 2000,
+			expectArg: 3000,
+			expected:  false,
+		},
+	}
+	for _, test := range tests {
+		f := NewCuckooFilter(20, 0.001)
+		t.Run(test.name, func(t *testing.T) {
+			in := make([]byte, 4)
+			binary.BigEndian.PutUint32(in, test.insertArg)
+			err := f.Insert(in)
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+			out := make([]byte, 4)
+			binary.BigEndian.PutUint32(out, test.expectArg)
+			if f.Lookup(out) != test.expected {
+				t.Errorf("expected: %v, received: %v", test.expected, f.Lookup(out))
+			}
+		})
+	}
 }
