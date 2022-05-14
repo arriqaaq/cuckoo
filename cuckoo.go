@@ -8,6 +8,7 @@ import (
 	"hash/fnv"
 	"math"
 	"math/rand"
+	"sync"
 )
 
 var (
@@ -123,6 +124,7 @@ func NewCuckooFilter(capacity uint, fpRate float64) *CuckooFilter {
 }
 
 type CuckooFilter struct {
+	sync.Mutex
 	numbuckets     uint
 	entryPerBucket uint
 	fpSize         uint
@@ -172,7 +174,9 @@ func (c *CuckooFilter) insert(i1 uint, i2 uint, f []byte) error {
 	for n := 0; n < maxCuckooKicks; n++ {
 		// randomly select an entry e from bucket[i];
 		rIdx := rand.Intn(len(c.buckets[i]) - 1)
+		c.Lock()
 		f, c.buckets[i][rIdx] = c.buckets[i][rIdx], f
+		c.Unlock()
 		i = (i ^ uint(binary.BigEndian.Uint32(hash2(f)))) % c.numbuckets
 		b := c.buckets[i]
 		if idx, err := b.getEmptyEntry(); err == nil {
