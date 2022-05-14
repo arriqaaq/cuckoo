@@ -74,9 +74,6 @@ func TestBasicUint32(t *testing.T) {
 	if n4b {
 		t.Errorf("%v should not be in.", n4)
 	}
-	if n4b {
-		t.Errorf("%v should not be in.", n4)
-	}
 }
 
 func TestCuckooInsertTime(t *testing.T) {
