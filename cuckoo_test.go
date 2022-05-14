@@ -63,13 +63,16 @@ func TestBasicUint32(t *testing.T) {
 	n3b := f.Lookup(n3)
 	n4b := f.Lookup(n4)
 	if !n1b {
-		t.Errorf("%v should be in.", n1)
+		t.Errorf("%v:%v should be in.", n1b, n1)
 	}
 	if n2b {
-		t.Errorf("%v should not be in.", n2)
+		t.Errorf("%v: %v should not be in.", n2b, n2)
 	}
 	if n3b {
-		t.Errorf("%v should not be in.", n3)
+		t.Errorf("%v:%v should not be in.", n3b, n3)
+	}
+	if n4b {
+		t.Errorf("%v:%v should not be in.", n4b, n4)
 	}
 	if n4b {
 		t.Errorf("%v should not be in.", n4)
